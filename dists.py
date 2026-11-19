@@ -3,6 +3,14 @@ import dists
 import random
 import math
 
+def distribution_exp(l, n):
+    xs = []
+    for i in range(0, n):
+        u = random.random()
+        x = -(1 / l) * math.log(u)
+        xs.append(x)
+    return xs
+
 def distribution_1(n):
     xs = []
     for i in range(0, n):
