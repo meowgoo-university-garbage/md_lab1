@@ -9,9 +9,11 @@ def cdfi_exp(x, l):
         return 0
     return 1 - np.exp(-l * x)
 
-def cdf_uniform(): return lambda x: cdfi_uniform(x)
-def cdfi_uniform(x):
-    0 if x < 0 else 1 if x > 1 else x
+def cdf_uniform(a, b): return lambda x: cdfi_uniform(x, a, b)
+def cdfi_uniform(x, a, b):
+    if x <= a: return 0
+    if x >= b: return 1
+    return (x - a) / (b - a)
 
 def cdf_normal(mu, sigma): return lambda x: cdfi_normal(x, mu, sigma)
 def cdfi_normal(x, mu, sigma):

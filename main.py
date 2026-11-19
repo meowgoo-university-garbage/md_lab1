@@ -87,17 +87,22 @@ def main():
     seqs = []
 
     if True:
+        fig = plt.figure()
+        fig.suptitle("Generating distributions")
+
         for i in range(len(dists)):
             xs = dists[i](1000)
             seqs.append(xs)
+            ax = fig.add_subplot(1, 5, 1 + i)
+            ax.hist(xs, bins = 20)
 
-            print(f"DISTRIBUTION {i}")
-            print(f"- Exp: {chi_sqr(xs, cdf_exp(0.5), 10, 0)}")
+        plt.show()
 
     print(len(seqs))
 
     if True:
         fig = plt.figure()
+        fig.suptitle("Analyzing for exponential distributions")
 
         ls = np.arange(0.05, 0.9, 0.01)
 
@@ -117,8 +122,34 @@ def main():
 
         plt.show()
 
-    if False:
+    if True:
         fig = plt.figure()
+        fig.suptitle("Analyzing for uniform distributions")
+
+        aS = np.arange(-1, 0.5, 0.01)
+        bs = np.arange(0.6, 2, 0.01)
+        A, B = np.meshgrid(aS, bs)
+
+        for di in range(len(seqs)):
+            seq = seqs[di]
+
+            X2 = np.zeros(A.shape)
+
+            for i in range(len(bs)):
+                for j in range(len(aS)):
+                    X2[i, j] = chi_sqr(seq, cdf_uniform(A[i, j], B[i, j]), 20, 0)
+
+            ax = fig.add_subplot(2, 5, 6 + di, projection = "3d")
+            ax.plot_surface(A, B, X2, cmap = "viridis")
+
+            cx = fig.add_subplot(2, 5, 1 + di)
+            cx.hist(seq, bins = 20)
+
+        plt.show()
+
+    if True:
+        fig = plt.figure()
+        fig.suptitle("Analyzing for normal distributions")
 
         ms = np.arange(0.35, 0.65, 0.01)
         ss = np.arange(0.05, 0.15, 0.01)
@@ -143,6 +174,7 @@ def main():
 
     if True:
         fig = plt.figure()
+        fig.suptitle("Analyzing for erlang distributions")
 
         ks = np.array([ 1, 2, 3, 4, 5, 6 ], dtype = "float")
         ls = np.arange(0.2, 0.5, 0.01)
