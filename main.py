@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import random
 import math
 
-from scipy.stats import norm, chi2
+from scipy.stats import norm, chi2, poisson
 from scipy.optimize import brentq
 
 from dists import *
@@ -80,11 +80,70 @@ def chi_sqr(xs, cdf, bins, pc):
     return float(chi2.sf(result, dof))
 
 
+def chi_sqr_poisson(xs, mu, pc):
+    xs = np.asarray(xs, dtype = float)
+    n = xs.size
+
+    max_k = int(poisson.ppf(0.999, mu = mu)) + 1
+    lower_bounds = np.arange(max_k + 1, dtype = float)
+
+    category_indexes = np.searchsorted(lower_bounds, xs, side = "right") - 1
+    observed = np.bincount(category_indexes, minlength = len(lower_bounds))
+
+    cdf_before = poisson.cdf(lower_bounds - 1, mu = mu)
+    sf_before  = poisson.sf (lower_bounds - 1, mu = mu)
+    probabilities = np.empty(len(lower_bounds), dtype = float)
+
+    for i in range(len(lower_bounds) - 1):
+        if cdf_before[i] < 0.5:
+            probabilities[i] = cdf_before[i + 1] - cdf_before[i]
+        else:
+            probabilities[i] = sf_before[i] - sf_before[i + 1]
+
+    probabilities[-1] = sf_before[-1]
+    expected = n * probabilities
+
+    merged_observed = []
+    merged_expected = []
+    i = 0
+
+    while i < len(expected):
+        cum_observed = observed[i]
+        cum_expected = expected[i]
+        i += 1
+
+        while cum_expected < 5 and i < len(expected):
+            cum_observed += observed[i]
+            cum_expected += expected[i]
+            i += 1
+
+        merged_observed.append(cum_observed)
+        merged_expected.append(cum_expected)
+
+    if len(merged_expected) > 1 and merged_expected[-1] < 5:
+        merged_observed[-2] += merged_observed.pop()
+        merged_expected[-2] += merged_expected.pop()
+
+    observed = np.asarray(merged_observed)
+    expected = np.asarray(merged_expected)
+
+    dof = len(expected) - 1 - pc
+    result = np.sum((observed - expected) ** 2 / expected)
+    return float(chi2.sf(result, dof))
+
+
+
 
 
 def main():
     dists = [ distribution_1, distribution_2, distribution_3, distribution_4, distribution_5 ]
     seqs = []
+
+    ANALYZE_EXP = False
+    ANALYZE_UNI = False
+    ANALYZE_NOR = False
+    ANALYZE_ERL = False
+    ANALYZE_POI = True
 
     if True:
         fig = plt.figure()
@@ -100,7 +159,7 @@ def main():
 
     print(len(seqs))
 
-    if True:
+    if ANALYZE_EXP:
         fig = plt.figure()
         fig.suptitle("Analyzing for exponential distributions")
 
@@ -122,7 +181,7 @@ def main():
 
         plt.show()
 
-    if True:
+    if ANALYZE_UNI:
         fig = plt.figure()
         fig.suptitle("Analyzing for uniform distributions")
 
@@ -147,7 +206,7 @@ def main():
 
         plt.show()
 
-    if True:
+    if ANALYZE_NOR:
         fig = plt.figure()
         fig.suptitle("Analyzing for normal distributions")
 
@@ -172,7 +231,7 @@ def main():
 
         plt.show()
 
-    if True:
+    if ANALYZE_ERL:
         fig = plt.figure()
         fig.suptitle("Analyzing for erlang distributions")
 
@@ -191,6 +250,28 @@ def main():
 
             ax = fig.add_subplot(2, 5, 6 + di, projection = "3d")
             ax.plot_surface(K, L, X2, cmap = "viridis")
+
+            cx = fig.add_subplot(2, 5, 1 + di)
+            cx.hist(seq, bins = 20)
+
+        plt.show()
+
+    if ANALYZE_POI:
+        fig = plt.figure()
+        fig.suptitle("Analyzing for poisson distributions")
+
+        ls = np.arange(1.5, 4.5, 0.01)
+
+        for di in range(len(seqs)):
+            seq = seqs[di]
+
+            X2 = np.zeros(len(ls))
+            for i in range(len(ls)):
+                X2[i] = chi_sqr_poisson(seq, ls[i], 0)
+
+            ax = fig.add_subplot(2, 5, 6 + di)
+            ax.plot(X2)
+            ax.axhline(y = 0.05, color = "red")
 
             cx = fig.add_subplot(2, 5, 1 + di)
             cx.hist(seq, bins = 20)
