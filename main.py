@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import math
+import time
 
 from scipy.stats import norm, chi2, poisson
 from scipy.optimize import brentq
@@ -139,11 +140,13 @@ def main():
     dists = [ distribution_1, distribution_2, distribution_3, distribution_4, distribution_5 ]
     seqs = []
 
-    ANALYZE_EXP = True
+    ANALYZE_EXP = False
     ANALYZE_UNI = False
     ANALYZE_NOR = False
     ANALYZE_ERL = False
-    ANALYZE_POI = True
+    ANALYZE_POI = False
+    BENCH_LIN   = False
+    BENCH_LOG   = True
 
     if True:
         fig = plt.figure()
@@ -280,15 +283,89 @@ def main():
 
 
 
+    if BENCH_LIN:
+        bench_counts = []
 
-    
-    # xs = distribution_1(1000)
-    # ls = np.arange(0.01, 1.01, 0.01)
-    # ys = [ chi_sqr(xs, cdf_exp(l), 20, 0) for l in ls ]
-    #
-    # plt.plot(ls, ys)
-    #
-    # plt.show()
+        for i in range(len(dists)):
+            dist = dists[i]
+
+            lo = 0
+            hi = 20000000
+            c = 0
+            t = 0
+
+            print(f"Benchmarking dist {i}")
+
+            while True:
+                c = int((hi + lo) / 2)
+                time_start = time.process_time()
+                _ = dist(c)
+                time_end = time.process_time()
+                t = time_end - time_start
+
+                print(f"\tN = {c}, time = {t}")
+
+                if math.fabs(1 - t) < 0.01:
+                    break
+                
+                if t > 1:
+                    hi = c
+                else:
+                    lo = c
+
+            print(f"Dist {i}, N = {c}, time = {t}")
+            bench_counts.append(c)
+
+        fig = plt.figure()
+        fig.suptitle("Benchmarking")
+        for i in range(len(dists)):
+            ns = [ 1, 2, 3, 4, 5, 6, 7 ]
+            times = []
+
+            for n in ns:
+                time_start = time.process_time()
+                _ = dists[i](n * bench_counts[i])
+                time_end = time.process_time()
+                t = time_end - time_start
+                times.append(t)
+
+            ax = fig.add_subplot(1, 5, 1 + i)
+            ax.plot(ns, times)
+
+        plt.show()
+
+
+    if BENCH_LOG:
+        fig = plt.figure()
+        fig.suptitle("Benchmarking (log)")
+
+        for i in range(len(dists)):
+            dist = dists[i]
+
+            times = []
+            ns = []
+
+            n = 10
+            for j in range(6):
+                time_start = time.process_time()
+                _ = dists[i](n)
+                time_end = time.process_time()
+                t = time_end - time_start
+
+                times.append(t)
+                ns.append(n)
+
+                n *= 10
+
+            ax = fig.add_subplot(1, 5, 1 + i)
+            ax.plot(ns, times)
+
+        plt.show()
+
+
+
+
+
 
 
 main()
