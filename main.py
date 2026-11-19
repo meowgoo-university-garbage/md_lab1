@@ -139,7 +139,7 @@ def main():
     dists = [ distribution_1, distribution_2, distribution_3, distribution_4, distribution_5 ]
     seqs = []
 
-    ANALYZE_EXP = False
+    ANALYZE_EXP = True
     ANALYZE_UNI = False
     ANALYZE_NOR = False
     ANALYZE_ERL = False
@@ -173,7 +173,7 @@ def main():
                 X2[i] = chi_sqr(seq, cdf_exp(ls[i]), 20, 0)
 
             ax = fig.add_subplot(2, 5, 6 + di)
-            ax.plot(X2)
+            ax.plot(ls, X2)
             ax.axhline(y = 0.05, color = "red")
 
             cx = fig.add_subplot(2, 5, 1 + di)
@@ -270,7 +270,7 @@ def main():
                 X2[i] = chi_sqr_poisson(seq, ls[i], 0)
 
             ax = fig.add_subplot(2, 5, 6 + di)
-            ax.plot(X2)
+            ax.plot(ls, X2)
             ax.axhline(y = 0.05, color = "red")
 
             cx = fig.add_subplot(2, 5, 1 + di)
