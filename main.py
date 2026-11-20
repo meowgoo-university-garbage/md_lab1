@@ -137,8 +137,8 @@ def chi_sqr_poisson(xs, mu, pc):
 
 
 def main():
+
     dists = [ distribution_1, distribution_2, distribution_3, distribution_4, distribution_5 ]
-    seqs = []
 
     ANALYZE_EXP = False
     ANALYZE_UNI = False
@@ -146,7 +146,9 @@ def main():
     ANALYZE_ERL = False
     ANALYZE_POI = False
     BENCH_LIN   = False
-    BENCH_LOG   = True
+    BENCH_LOG   = False
+
+    seqs = []
 
     if True:
         fig = plt.figure()
@@ -157,6 +159,8 @@ def main():
             seqs.append(xs)
             ax = fig.add_subplot(1, 5, 1 + i)
             ax.hist(xs, bins = 20)
+
+            print(f"Distribution #{i}. MU = {calc_mu(xs)}, DISPERSION = {calc_disp(xs)}, SIGMA = {calc_sigma(xs)}")
 
         plt.show()
 
@@ -353,7 +357,7 @@ def main():
                 t = time_end - time_start
 
                 times.append(t)
-                ns.append(n)
+                ns.append(j)
 
                 n *= 10
 
